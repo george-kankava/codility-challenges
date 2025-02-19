@@ -23,12 +23,6 @@ public class PICodeChallengeV2 {
             freqMap.put(c, freqMap.getOrDefault(c, 0) + 1);
         }
 
-        for (int i = 0; i < P.length(); i++) {
-            freqMap.compute(P.charAt(i), (k, v) -> v == null ? 1 : v + 1);
-        }
-        for (int i = 0; i < Q.length(); i++) {
-            freqMap.compute(Q.charAt(i), (k, v) -> v == null ? 1 : v + 1);
-        }
         freqMap = freqMap.entrySet()
                 .stream()
                 .sorted(Map.Entry.<Character, Integer>comparingByValue().reversed())
