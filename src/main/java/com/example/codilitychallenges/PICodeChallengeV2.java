@@ -11,12 +11,6 @@ import java.util.stream.Collectors;
 
 public class PICodeChallengeV2 {
 
-    // bacad abada
-    // hsuledusla jfudisoala
-    // axxz yzwy
-    // axxz yzwy
-    // "adabca", "cbdcdb"
-
     public static int solution(String P, String Q) {
         if (Objects.equals(P, Q)) {
             Set<Character> uniqueLetters = P.chars()
@@ -24,21 +18,25 @@ public class PICodeChallengeV2 {
                     .collect(Collectors.toSet());
             return uniqueLetters.size();
         }
-        Map<Character, Integer> chars = new HashMap<>();
+        Map<Character, Integer> freqMap = new HashMap<>();
+        for (char c : (P + Q).toCharArray()) {
+            freqMap.put(c, freqMap.getOrDefault(c, 0) + 1);
+        }
+
         for (int i = 0; i < P.length(); i++) {
-            chars.compute(P.charAt(i), (k, v) -> v == null ? 1 : v + 1);
+            freqMap.compute(P.charAt(i), (k, v) -> v == null ? 1 : v + 1);
         }
         for (int i = 0; i < Q.length(); i++) {
-            chars.compute(Q.charAt(i), (k, v) -> v == null ? 1 : v + 1);
+            freqMap.compute(Q.charAt(i), (k, v) -> v == null ? 1 : v + 1);
         }
-        chars = chars.entrySet()
+        freqMap = freqMap.entrySet()
                 .stream()
                 .sorted(Map.Entry.<Character, Integer>comparingByValue().reversed())
                 .collect(LinkedHashMap::new, (map, entry) -> map.put(entry.getKey(), entry.getValue()), Map::putAll);
 
         int charsToConsider = 0;
         int counter = 0;
-        for (Integer count : chars.values()) {
+        for (Integer count : freqMap.values()) {
             if (counter >= P.length()) {
                 break;
             }
@@ -49,7 +47,7 @@ public class PICodeChallengeV2 {
         Character [] charsToConsiderArray = new Character[charsToConsider];
 
         int index = 0;
-        for (Character c : chars.keySet()) {
+        for (Character c : freqMap.keySet()) {
             if (index >= charsToConsider) {
                 break;
             }
@@ -73,7 +71,12 @@ public class PICodeChallengeV2 {
         return Arrays.stream(result).collect(Collectors.toSet()).size();
     }
 
+    // bacad abada
+    // hsuledusla jfudisoala
+    // axxz yzwy
+    // axxz yzwy
+    // "adabca", "cbdcdb"
     public static void main(String[] args) {
-        System.out.println(solution("dcba", "cbad"));// ccaa
+        System.out.println(solution("adabca", "cbdcdb"));// ccaa
     }
 }
