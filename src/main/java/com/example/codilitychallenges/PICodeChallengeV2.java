@@ -1,10 +1,10 @@
 package com.example.codilitychallenges;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,78 +20,68 @@ public class PICodeChallengeV2 {
                     .collect(Collectors.toSet());
             return uniqueLetters.size();
         }
-        Map<Character, Integer> freqMap = new HashMap<>();
-        for (char c : (P + Q).toCharArray()) {
-            freqMap.put(c, freqMap.getOrDefault(c, 0) + 1);
+        Map<Character, CharCountAndPosition> freqMap = new HashMap<>();
+        char[] pCharArray = P.toCharArray();
+        for (int i = 0; i < P.length(); i++) {
+            CharCountAndPosition countAndPosition = freqMap.getOrDefault(pCharArray[i], new CharCountAndPosition());
+            countAndPosition.setCount(countAndPosition.getCount() + 1);
+            countAndPosition.getPositions().add(i);
+            freqMap.put(pCharArray[i], countAndPosition);
         }
 
-        freqMap = freqMap.entrySet()
-                .stream()
-                .sorted(Map.Entry.<Character, Integer>comparingByValue().reversed())
-                .collect(LinkedHashMap::new, (map, entry) -> map.put(entry.getKey(), entry.getValue()), Map::putAll);
+        char[] qCharArray = Q.toCharArray();
+        for (int i = 0; i < Q.length(); i++) {
+            CharCountAndPosition countAndPosition = freqMap.getOrDefault(qCharArray[i], new CharCountAndPosition());
+            countAndPosition.setCount(countAndPosition.getCount() + 1);
+            countAndPosition.getPositions().add(i);
+            freqMap.put(qCharArray[i], countAndPosition);
+        }
 
-        int charsToConsider = 0;
-        int counter = 0;
-        for (Integer count : freqMap.values()) {
-            if (counter >= P.length()) {
-                break;
+        List<CharPair> charPairs = new ArrayList<>();
+        for (Map.Entry<Character, CharCountAndPosition> positionEntry : freqMap.entrySet()) {
+            if (positionEntry.getValue().getCount() == P.length()) {
+                // all positions are filled with single characters
+                return 1;
             }
-            counter += count;
-            charsToConsider++;
-        }
+            for (Map.Entry<Character, CharCountAndPosition> characterCharCountAndPositionEntry : freqMap.entrySet()) {
+                Character key1 = positionEntry.getKey();
+                CharCountAndPosition value1 = positionEntry.getValue();
+                Character key2 = characterCharCountAndPositionEntry.getKey();
+                CharCountAndPosition value2 = characterCharCountAndPositionEntry.getValue();
 
-        Character [] charsToConsiderArray = new Character[charsToConsider];
-
-        int index = 0;
-        for (Character c : freqMap.keySet()) {
-            if (index >= charsToConsider) {
-                break;
+                if (!(charPairs.contains(new CharPair(key1, key2)) || charPairs.contains(new CharPair(key2, key1))) &&
+                        value1.getCount() > 1 && value2.getCount() > 1 && Collections.disjoint(value1.getPositions(), value2.getPositions())) {
+                    charPairs.add(new CharPair(key1, key2));
+                }
             }
-            charsToConsiderArray[index] = c;
-            index++;
         }
 
-        List<Character> characterLeft = freqMap.keySet()
-                .stream()
-                .filter(e1 -> Arrays.stream(charsToConsiderArray).noneMatch(e2 -> e2 == e1)).collect(Collectors.toList());
-
-
-        Character [] charsToConsiderArrayReversed = Arrays.stream(charsToConsiderArray).sorted(Comparator.reverseOrder()).distinct().toArray(Character[]::new);
-
-        Character [] result = new Character[P.length()];
-        Character [] resultWithReversed = new Character[P.length()];
+        if (charPairs.isEmpty()) {
+            Set<Character> keys = freqMap.keySet();
+            for (Character key : keys) {
+                charPairs.add(new CharPair(key, key));
+            }
+        }
 
         // filled positions in result
         Set<Integer> filledPositions = new HashSet<>();
-        Set<Integer> filledPositionsForReversed = new HashSet<>();
-        for (int i = 0; i < charsToConsider; i++) {
+        Character [] result = new Character[P.length()];
+        for (CharPair pair : charPairs) {
+            Character first = pair.getFirst();
+            Character second = pair.getSecond();
             for (int j = 0; j < P.length(); j++) {
-                if ((charsToConsiderArray[i] == P.charAt(j) || charsToConsiderArray[i] == Q.charAt(j)) && (!filledPositions.contains(j))) {
-                    result[j] = charsToConsiderArray[i];
+                if ((first ==  P.charAt(j) || first == Q.charAt(j)) && (!filledPositions.contains(j))) {
+                    result[j] = first;
                     filledPositions.add(j);
                 }
-                if ((charsToConsiderArrayReversed[i] == P.charAt(j) || charsToConsiderArrayReversed[i] == Q.charAt(j)) && (!filledPositionsForReversed.contains(j))) {
-                    resultWithReversed[j] = charsToConsiderArrayReversed[i];
-                    filledPositionsForReversed.add(j);
-                }
-            }
-        }
-        for (int i = 0; i < P.length(); i++) {
-            if (result[i] == null) {
-                for (Character c : characterLeft) {
-                    if (c.equals(P.charAt(i)) || c.equals(Q.charAt(i))) {
-                        result[i] = c;
-                        resultWithReversed[i] = c;
-                    }
+                if ((second == P.charAt(j) || second == Q.charAt(j)) && (!filledPositions.contains(j))) {
+                    result[j] = second;
+                    filledPositions.add(j);
                 }
             }
         }
 
-
-
-        int size = Arrays.stream(result).filter(Objects::nonNull).collect(Collectors.toSet()).size();
-        int sizeOfReversed = Arrays.stream(resultWithReversed).filter(Objects::nonNull).collect(Collectors.toSet()).size();
-        return Math.min(size, sizeOfReversed);
+        return Arrays.stream(result).filter(Objects::nonNull).collect(Collectors.toSet()).size();
     }
 
     // bacad abada
@@ -104,6 +94,74 @@ public class PICodeChallengeV2 {
     // acb cba
     // awwa bbwx
     public static void main(String[] args) {
-        System.out.println(solution("dcba", "cbad"));// ccaa
+        System.out.println(solution("abc", "bcd"));// ccaa
+    }
+    private static class CharPair {
+        Character first;
+        Character second;
+
+        public CharPair(char first, char second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        public Character getFirst() {
+            return first;
+        }
+
+        public Character getSecond() {
+            return second;
+        }
+
+        @Override
+        public String toString() {
+            return "(" + first + ", " + second + ")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+
+            CharPair charPair = (CharPair) o;
+            return Objects.equals(first, charPair.first) && Objects.equals(second, charPair.second);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hashCode(first);
+            result = 31 * result + Objects.hashCode(second);
+            return result;
+        }
+    }
+
+    private static class CharCountAndPosition implements Comparable<CharCountAndPosition>{
+        public Integer count;
+        public Set<Integer> positions;
+
+        public CharCountAndPosition() {
+            this.count = 0;
+            this.positions = new HashSet<>();
+        }
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public Set<Integer> getPositions() {
+            return positions;
+        }
+
+        public void setPositions(Set<Integer> positions) {
+            this.positions = positions;
+        }
+
+        @Override
+        public int compareTo(CharCountAndPosition o) {
+            return o.getCount().compareTo(this.getCount());
+        }
     }
 }
