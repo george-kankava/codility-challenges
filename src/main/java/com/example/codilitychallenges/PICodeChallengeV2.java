@@ -3,6 +3,7 @@ package com.example.codilitychallenges;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,19 +50,20 @@ public class PICodeChallengeV2 {
                 Character key2 = characterCharCountAndPositionEntry.getKey();
                 CharCountAndPosition value2 = characterCharCountAndPositionEntry.getValue();
 
-                if (!(charPairs.contains(new CharPair(key1, key2)) || charPairs.contains(new CharPair(key2, key1))) &&
+                if (!(charPairs.contains(new CharPair(key1, key2, value1.getCount(), value2.getCount())) || charPairs.contains(new CharPair(key2, key1, value2.getCount(), value1.getCount()))) &&
                         value1.getCount() > 1 && value2.getCount() > 1 && Collections.disjoint(value1.getPositions(), value2.getPositions())) {
-                    charPairs.add(new CharPair(key1, key2));
+                    charPairs.add(new CharPair(key1, key2, value1.getCount(), value2.getCount()));
                 }
             }
         }
 
         if (charPairs.isEmpty()) {
-            Set<Character> keys = freqMap.keySet();
-            for (Character key : keys) {
-                charPairs.add(new CharPair(key, key));
+            Set<Map.Entry<Character, CharCountAndPosition>> entries = freqMap.entrySet();
+            for (Map.Entry<Character, CharCountAndPosition> entry : entries) {
+                charPairs.add(new CharPair(entry.getKey(), entry.getKey(), entry.getValue().getCount(), entry.getValue().getCount()));
             }
         }
+        charPairs.sort(Comparator.comparingInt(CharPair::getFirstCount).reversed());
 
         // filled positions in result
         Set<Integer> filledPositions = new HashSet<>();
@@ -94,15 +96,20 @@ public class PICodeChallengeV2 {
     // acb cba
     // awwa bbwx
     public static void main(String[] args) {
-        System.out.println(solution("abc", "bcd"));// ccaa
+        System.out.println(solution("abcdef", "bcdefa"));// ccaa
     }
     private static class CharPair {
         Character first;
         Character second;
 
-        public CharPair(char first, char second) {
+        int firstCount;
+        int secondCount;
+
+        public CharPair(char first, char second, int firstCount, int secondCount) {
             this.first = first;
             this.second = second;
+            this.firstCount = firstCount;
+            this.secondCount = secondCount;
         }
 
         public Character getFirst() {
@@ -111,6 +118,22 @@ public class PICodeChallengeV2 {
 
         public Character getSecond() {
             return second;
+        }
+
+        public int getFirstCount() {
+            return firstCount;
+        }
+
+        public void setFirstCount(int firstCount) {
+            this.firstCount = firstCount;
+        }
+
+        public int getSecondCount() {
+            return secondCount;
+        }
+
+        public void setSecondCount(int secondCount) {
+            this.secondCount = secondCount;
         }
 
         @Override
