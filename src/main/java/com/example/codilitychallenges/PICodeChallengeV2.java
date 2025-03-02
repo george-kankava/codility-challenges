@@ -39,51 +39,35 @@ public class PICodeChallengeV2 {
         }
 
         List<CharPair> charPairs = new ArrayList<>();
+
+        List<Character[]> results = new ArrayList<>();
         for (Map.Entry<Character, CharCountAndPosition> positionEntry : freqMap.entrySet()) {
             if (positionEntry.getValue().getCount() == P.length()) {
                 // all positions are filled with single characters
                 return 1;
             }
+            Character key1 = positionEntry.getKey();
+            CharCountAndPosition value1 = positionEntry.getValue();
+            Character [] result1 = new Character[P.length()];
+            Character [] result2 = new Character[P.length()];
+            int index = 0;
             for (Map.Entry<Character, CharCountAndPosition> characterCharCountAndPositionEntry : freqMap.entrySet()) {
-                Character key1 = positionEntry.getKey();
-                CharCountAndPosition value1 = positionEntry.getValue();
                 Character key2 = characterCharCountAndPositionEntry.getKey();
                 CharCountAndPosition value2 = characterCharCountAndPositionEntry.getValue();
 
-                if (!(charPairs.contains(new CharPair(key1, key2, value1.getCount(), value2.getCount())) || charPairs.contains(new CharPair(key2, key1, value2.getCount(), value1.getCount()))) &&
-                        value1.getCount() > 1 && value2.getCount() > 1 && Collections.disjoint(value1.getPositions(), value2.getPositions())) {
-                    charPairs.add(new CharPair(key1, key2, value1.getCount(), value2.getCount()));
+                if ((key1 == P.charAt(index) || key1 == Q.charAt(index)) || (key2 == Q.charAt(index) || key2 == P.charAt(index))) {
+                    result1[index] = key1;
+                    result2[index] = key2;
                 }
+                index++;
             }
+            results.add(result1);
+            results.add(result2);
         }
+        results.sort(Comparator.comparing(Arrays::toString));
 
-        if (charPairs.isEmpty()) {
-            Set<Map.Entry<Character, CharCountAndPosition>> entries = freqMap.entrySet();
-            for (Map.Entry<Character, CharCountAndPosition> entry : entries) {
-                charPairs.add(new CharPair(entry.getKey(), entry.getKey(), entry.getValue().getCount(), entry.getValue().getCount()));
-            }
-        }
-        charPairs.sort(Comparator.comparingInt(CharPair::getFirstCount).reversed());
-
-        // filled positions in result
-        Set<Integer> filledPositions = new HashSet<>();
-        Character [] result = new Character[P.length()];
-        for (CharPair pair : charPairs) {
-            Character first = pair.getFirst();
-            Character second = pair.getSecond();
-            for (int j = 0; j < P.length(); j++) {
-                if ((first ==  P.charAt(j) || first == Q.charAt(j)) && (!filledPositions.contains(j))) {
-                    result[j] = first;
-                    filledPositions.add(j);
-                }
-                if ((second == P.charAt(j) || second == Q.charAt(j)) && (!filledPositions.contains(j))) {
-                    result[j] = second;
-                    filledPositions.add(j);
-                }
-            }
-        }
-
-        return Arrays.stream(result).filter(Objects::nonNull).collect(Collectors.toSet()).size();
+//        return Arrays.stream(result).filter(Objects::nonNull).collect(Collectors.toSet()).size();
+        return 0;
     }
 
     // bacad abada
